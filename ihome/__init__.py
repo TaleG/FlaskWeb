@@ -11,6 +11,7 @@ from logging.handlers import RotatingFileHandler
 from ihome import utils
 from config import Config_map
 
+
 #数据库
 db = SQLAlchemy()
 
@@ -69,5 +70,9 @@ def Create_app(Config_name):
     #注册蓝图
     from ihome import api_1_0
     app.register_blueprint(api_1_0.api, url_prefix="/api/v1.0")
+
+    #注册提供静态文件蓝图
+    from ihome import web_html
+    app.register_blueprint(web_html.html)
 
     return app

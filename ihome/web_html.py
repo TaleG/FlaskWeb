@@ -13,7 +13,7 @@ def get_html(html_file_name):
     #如果html_file_name为空，表示访问的路径是/，请求的是主页。
     if not html_file_name:
         html_file_name = 'index.html'
-
-    html_file_name = "html/" + html_file_name
+    if html_file_name != 'favicon.ico':
+        html_file_name = "html/" + html_file_name
     #flask提供的返回静态文件的方法
     return current_app.send_static_file(html_file_name)
