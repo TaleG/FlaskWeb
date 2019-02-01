@@ -18,8 +18,6 @@ db = SQLAlchemy()
 #创始redis连接对象
 redis_store = None
 
-#为flask补充csrf防护机制
-csrf = CSRFProtect()
 
 ####### 错误日志 #########
 # logging.error("")   # 错误级别
@@ -62,7 +60,7 @@ def Create_app(Config_name):
     Session(app)
 
     # 初始化
-    csrf.init_app(app)
+    CSRFProtect(app)
 
     #为flask添加自定义的转换器
     app.url_map.converters["re"] = utils.ReConverter
