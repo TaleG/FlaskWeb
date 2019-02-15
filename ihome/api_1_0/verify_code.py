@@ -123,4 +123,3 @@ def get_sms_code(mobile):
     else:
         return jsonify(errno=RET.THIRDERR, errmsg="发送失败")
 
-

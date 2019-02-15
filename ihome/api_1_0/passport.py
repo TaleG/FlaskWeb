@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from . import api
 from ihome.utils.response_code import RET
-from ihome import redis_store, db
+from ihome import redis_store, db, constants
 from ihome.models import User
 
 
@@ -91,3 +91,66 @@ def register():
     session["user_id"] = user.id
     # 返回结果
     return jsonify(errno=RET.OK, errmsg="注册成功")
+
+@api.route("/sessions", methods=["POST"])
+def login():
+    """
+    用户注册
+    参数：手机号  密码
+    格式：json
+    :return:
+    """
+    # 获取参数
+    req_dict = request.get_json()
+    mobile = req_dict.get("mobile")
+    password = req_dict.get("password")
+
+    # 校验参数
+    # 参数完整的校验
+    if not all([mobile, password]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不完整")
+
+    # 手机号的格式
+    if not re.match(r"1[345678]\d{9}", mobile):
+        return jsonify(errno=RET.PARAMERR, errmsg="手机号格式错误")
+
+    # 判断错误次数是否超过限制，如果超过限制，则限制后续操作时间
+    # redis记录："acess_num_"请求的IP: 次数
+    user_ip = request.remote_addr   # 用户的IP地址
+
+    try:
+        access_nums = redis_store.get("access_nums_%s" % user_ip)
+    except Exception as e:
+        current_app.logger.error(e)
+    else:
+        if access_nums is not None and int(access_nums) >= constants.LOGIN_ERROR_MAX_TIMES:
+            return jsonify(errno=RET.REQERR, errmsg="错误次数过多，请稍后重试")
+
+    # 从数据库中根据手机号查询用户的数据进行对比验证
+    try:
+        user = User.query.filter_by(mobile=mobile).first()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="获取用户信息失败")
+
+    # 用数据库的密码与用户填写的密码进行对比验证
+    if user is None or not user.check_password(password):
+        # 如果验证失败，记录错误次数，反回信息
+        try:
+            redis_store.incr("access_nums_%s" % user_ip)
+            redis_store.expire("access_nums_%s" % user_ip, constants.LOGIN_ERROR_FORBID_TIME)
+        except Exception as e:
+            current_app.logger.error(e)
+
+        return jsonify(errno=RET.DATAERR, errmsg="用户名或密码错误")
+
+    # 如果验证相同成功，保存登录状态，在session中
+    session["name"] = user.name
+    session["mobile"] = user.mobile
+    session["user_id"] = user.id
+
+    # 登录成功删除redis登录错误次数记录
+    redis_store.delete("access_nums_%s" % user_ip)
+
+    return jsonify(errno=RET.OK, errmsg="登录成功")
+
