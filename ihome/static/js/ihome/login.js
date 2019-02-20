@@ -41,12 +41,13 @@ $(document).ready(function() {
                 "X-CSRFTOKEN": getCookie('csrf_token')
             },
             success: function (data) {
-                // 登录成功，跳转到主页
                 if (data.errno == "0") {
+                    // 登录成功，跳转到主页
                     location.href = "/";
-                } else {
-                    // 其他错误信息在页面显示
-                    $("#password-err span").html(data.errmsg);
+                }
+                else {
+                    // 其他错误信息， 在页面中展示
+                    $("#password-err span")/html(data.errmsg);
                     $("#password-err").show();
                 }
             }

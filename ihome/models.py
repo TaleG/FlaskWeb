@@ -52,6 +52,14 @@ class User(BaseModel, db.Model):
 
     def check_password(self, passwd):
         """
+        检验密码的正确证
+        :param passwd: 用户登录时填写的原始密码
+        :return: 如果正确返回True，否则返回False
+        """
+        return check_password_hash(self.password_hash, passwd)
+
+    def check_password(self, passwd):
+        """
         检验密码正确性
         :param passwd: 用户登录时填写的原始密码
         :return: 如果正确返回True，否则返回False
