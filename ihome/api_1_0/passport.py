@@ -84,13 +84,13 @@ def register():
         return jsonify(errno=RET.DATAEXIST, errmgs="手机号已存在")
     except Exception as e:
         current_app.logger.error(e)
-        return  jsonify(errno=RET.DBERR, errmsg="查询数据库异常")
+        return jsonify(errno=RET.DBERR, errmsg="查询数据库异常")
     # 保存登录状态到session中
     session["name"] = mobile
     session["mobile"] = mobile
     session["user_id"] = user.id
     # 返回结果
-    return jsonify(errno=RET.OK, errmsg="注册成功")
+    return jsonify(errno=RET.OK, errmsg="注册成功", userId={"userId": user.id})
 
 @api.route("/sessions", methods=["POST"])
 def login():
@@ -121,6 +121,7 @@ def login():
     else:
         if access_nums is not None and int(access_nums) >= constants.LOGIN_ERROR_MAX_TIMES:
             return jsonify(errno=RET.REQERR, errmsg="错误资数过多，请销后重试")
+
     # 从数据库中根据手机号查询用户的数据对象
     try:
         user = User.query.filter_by(mobile=mobile).first()

@@ -33,5 +33,3 @@ def login_required(view_func):
 
     return wrapper
 
-def set_user_avater():
-    user_id = g.user_id

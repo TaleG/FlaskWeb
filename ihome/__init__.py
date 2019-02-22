@@ -60,7 +60,7 @@ def Create_app(Config_name):
     Session(app)
 
     # 初始化
-    CSRFProtect(app)
+    # CSRFProtect(app)
 
     #为flask添加自定义的转换器
     app.url_map.converters["re"] = utils.ReConverter
